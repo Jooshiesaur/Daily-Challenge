@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== THEME: all colors live in these variables ===== */
+:root{--bg:#fff3c4;--bg2:#ffd6e7;--card:#ffffff;--ink:#2b2350;--muted:#6d6a8a;--accent:#ff5d8f;--accent2:#27c3b0;--good:#1fae6b;--bad:#e5384f;--line:#2b2350}
+body[data-mode=hard]{--bg:#0a0a0a;--bg2:#3a0000;--card:#161010;--ink:#fff1ee;--muted:#c9908a;--accent:#ff1e1e;--accent2:#ff1e1e;--good:#ffffff;--bad:#ff1e1e;--line:#ff1e1e}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg),var(--bg2));transition:background .6s,color .4s}
+body[data-mode=hard]{letter-spacing:.02em}
+main{max-width:760px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+#clock{font-size:clamp(2.4rem,9vw,4rem);font-weight:700;line-height:1}
+#date{color:var(--muted)}
+.badge{padding:6px 14px;border-radius:99px;font-weight:700;border:3px solid var(--line);background:var(--card)}
+body[data-mode=hard] .badge{background:var(--accent);color:#000}
+nav{display:flex;gap:8px}
+button{font:inherit;cursor:pointer;color:var(--ink);background:var(--card);border:3px solid var(--line);border-radius:14px;padding:10px 16px;font-weight:600;box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s}
+button:hover{transform:translateY(-1px)}button:active{transform:translateY(4px);box-shadow:none}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px dashed var(--accent);outline-offset:3px}
+.primary{background:var(--accent);color:#fff}
+body[data-mode=hard] .primary{color:#000}
+.good{background:var(--good);color:#fff}body[data-mode=hard] .good{color:#000}
+.bad{background:var(--bad);color:#fff}
+.card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 0 var(--line);text-align:center}
+h1,h2,h3{margin:.2em 0}
+.big{font-size:clamp(1.8rem,7vw,2.8rem);font-weight:700}
+.desc{font-size:1.15rem;margin:.5em auto 1em;max-width:520px}
+.hint{color:var(--muted);font-size:.95rem}
+#drawBtn{font-size:1.6rem;padding:20px 34px;margin:12px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0}
+.tok{font-size:1.8rem;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;border:2px solid var(--line);background:var(--bg)}
+.tok.gone{opacity:.35;filter:grayscale(1)}
+.tapper{font-size:3.5rem;padding:14px 34px;margin:6px}
+.count{font-size:3rem;font-weight:700}
+.result{font-size:2rem;font-weight:700;margin:10px 0}
+.secret{filter:blur(9px);cursor:pointer;user-select:none}
+.secret.show{filter:none}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;padding:12px;overflow:auto;z-index:5}
+.modal.open{display:block}
+.sheet{background:var(--card);color:var(--ink);border:3px solid var(--line);border-radius:20px;max-width:760px;margin:0 auto;padding:18px}
+.sheet header{margin:0 0 10px}
+.item{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--muted)}
+.item small{color:var(--muted)}
+label{display:block;margin:10px 0 3px;font-weight:600}
+input[type=text],input[type=number],textarea,select{width:100%;font:inherit;padding:8px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:520px){.grid4{grid-template-columns:repeat(2,1fr)}}
+table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--muted);font-size:.95rem}
+.win{color:var(--good);font-weight:700}.loss{color:var(--bad);font-weight:700}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body data-mode="easy">
+<main>
+  <header>
+    <div><div id="clock">--:--:--</div><div id="date"></div></div>
+    <div id="badge" class="badge"></div>
+    <nav><button id="btnHist">📜 History</button><button id="btnEdit">✏️ Editor</button></nav>
+  </header>
+  <section id="stage" class="card" aria-live="polite"></section>
+</main>
+
+<!-- History -->
+<div id="histModal" class="modal"><div class="sheet">
+  <header><h2>History</h2><div><button id="clearHist">Clear</button> <button class="closeBtn">Close</button></div></header>
+  <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Challenge</th><th>Mode</th><th>Score</th><th>Result</th></tr></thead><tbody id="histBody"></tbody></table></div>
+  <p id="histEmpty" class="hint">Nothing here yet. Draw your first challenge!</p>
+</div></div>
+
+<!-- Editor -->
+<div id="editModal" class="modal"><div class="sheet">
+  <header><h2>Challenge editor</h2><button class="closeBtn">Close</button></header>
+  <div class="row" style="justify-content:flex-start">
+    <button id="addCh">+ Add challenge</button><button id="expBtn">⬇ Export JSON</button>
+    <button id="impBtn">⬆ Import JSON</button><button id="resetBtn">Reset to defaults</button>
+    <input type="file" id="impFile" accept=".json,application/json" hidden>
+  </div>
+  <div id="chList"></div>
+  <form id="form" hidden onsubmit="return false">
+    <h3 id="formTitle">Edit challenge</h3>
+    <label>Name</label><input type="text" id="fName">
+    <label>Description <span class="hint">(use {sub} where the random pick should appear)</span></label><textarea id="fDesc" rows="2"></textarea>
+    <div class="grid4">
+      <div><label>Weight</label><input type="number" id="fWeight" min="0" step="0.1"></div>
+      <div><label>Win type</label><select id="fType"><option value="lives">Lives</option><option value="goal">Goal</option><option value="none">Auto-success</option></select></div>
+    </div>
+    <label>Sub-random options <span class="hint">(one per line, leave empty for none)</span></label><textarea id="fSub" rows="3"></textarea>
+    <label><input type="checkbox" id="fSecret"> Hide the rolled pick until I click it (secret)</label>
+    <label>Ranges <span class="hint">(leave blank to use defaults: Lives 3–12 / 5–20, Goal 3–9 / 5–16)</span></label>
+    <div class="grid4">
+      <div><small>Easy min</small><input type="number" id="rEMin" min="1"></div><div><small>Easy max</small><input type="number" id="rEMax" min="1"></div>
+      <div><small>Hard min</small><input type="number" id="rHMin" min="1"></div><div><small>Hard max</small><input type="number" id="rHMax" min="1"></div>
+    </div>
+    <label><input type="checkbox" id="fHasHard"> Has a HARDMODE variant</label>
+    <div id="hardBox" hidden>
+      <label>Hardmode name</label><input type="text" id="hName">
+      <label>Hardmode description</label><textarea id="hDesc" rows="2"></textarea>
+      <label>Hardmode sub-random options <span class="hint">(one per line)</span></label><textarea id="hSub" rows="3"></textarea>
+    </div>
+    <div class="row"><button class="primary" id="saveCh">Save</button><button id="delCh" class="bad">Delete</button><button id="cancelCh">Cancel</button></div>
+  </form>
+</div></div>
+
+<script>
+/* ============ DATA & STORAGE ============ */
+const KEY_CH='dc_challenges', KEY_HIST='dc_history', KEY_TODAY='dc_today';
+const DEFAULT_RANGES={lives:{e:[3,12],h:[5,20]},goal:{e:[3,9],h:[5,16]}};
+const HARD_HOUR=10, END_HOUR=18;
+
+const DEFAULTS=[
+ {id:'none',name:'None!',description:'No challenge today. Enjoy your dessert!',weight:1,type:'none',sub:[],secret:false,range:{},hasHard:false,hard:{}},
+ {id:'cat',name:'Catastrophe',description:"Can't touch cats today.",weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
+  hard:{name:'Cataclysm',description:"Can't touch OR look at cats (photos and videos count!).",sub:[]}},
+ {id:'color',name:'Anaphicolour',description:"Can't touch anything {sub} today.",weight:3,type:'lives',secret:false,range:{},
+  sub:['Red','Blue','Green','Yellow','Purple','Orange'],hasHard:true,
+  hard:{name:'Double Anaphicolour',description:"Can't touch anything in these colours today: {sub}.",sub:['Red + Blue','Green + Yellow','Purple + Orange','Red + Green','Blue + Orange','Yellow + Purple']}},
+ {id:'chuckle',name:'Chuckle Muck',description:"Can't laugh or make humored mouth noises or giggles.",weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
+  hard:{name:'Chuckle Muck: No Smiles',description:"No laughing, giggling, OR smiling. Stone face!",sub:[]}},
+ {id:'cold',name:'Cold Shoulder',description:'Use your non-dominant hand for tasks you normally do with your dominant hand. Click the check each time you pull one off.',weight:3,type:'goal',sub:[],secret:false,range:{},hasHard:false,hard:{}},
+ {id:'reflect',name:'Reflective Reaper',description:'Do not make eye contact with your own reflection.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:false,hard:{}},
+ {id:'secret',name:'Secret Life',description:'Your secret task: {sub}. Complete it the target number of times. If someone figures out your secret, or time runs out, you fail.',weight:3,type:'goal',secret:true,range:{},
+  sub:['Hum a song in every room you enter','Say "fascinating" in conversation','T-pose whenever a door opens','Bow before sitting down','Narrate your actions like a nature documentary'],hasHard:false,hard:{}}
+];
+
+const load=(k,fb)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??fb}catch(e){return fb}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let challenges=load(KEY_CH,null)||structuredClone(DEFAULTS);
+let history=load(KEY_HIST,[]);
+let today=load(KEY_TODAY,null);
+
+/* ============ HELPERS ============ */
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const dateKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const rng=(a,b)=>{if(b<a)[a,b]=[b,a];return a+Math.floor(Math.random()*(b-a+1))};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function weightedPick(list){
+  const pool=list.filter(c=>c.weight>0); if(!pool.length) return null;
+  let r=Math.random()*pool.reduce((s,c)=>s+c.weight,0);
+  for(const c of pool){r-=c.weight;if(r<=0)return c}
+  return pool[pool.length-1];
+}
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const lines=t=>t.split('\n').map(s=>s.trim()).filter(Boolean);
+
+/* ============ GAME LOGIC ============ */
+function drawChallenge(){
+  const now=new Date();
+  if(today&&today.date===dateKey(now)) return;
+  if(now.getHours()>=END_HOUR) return;
+  const c=weightedPick(challenges);
+  if(!c){alert('No challenges have a weight above 0. Open the editor to fix that.');return}
+  const late=now.getHours()>=HARD_HOUR;
+  const hard=late||Math.random()<0.05;
+  const useHard=hard&&c.hasHard;
+  const v=useHard?{...c,...c.hard}:c;
+  const subs=v.sub||[];
+  const sub=subs.length?pick(subs):'';
+  const kind=c.type;
+  const mode=hard?'h':'e';
+  const rg=c.range||{};
+  const d=DEFAULT_RANGES[kind]?DEFAULT_RANGES[kind][mode]:[0,0];
+  const lo=rg[mode+'Min']||d[0], hi=rg[mode+'Max']||d[1];
+  const max=kind==='none'?0:rng(lo,hi);
+  today={date:dateKey(now),name:v.name,desc:(v.description||'').replace(/\{sub\}/g,sub),
+    secret:!!c.secret&&!!sub,revealed:false,hard,type:kind,max,
+    value:kind==='lives'?max:0,status:'active',lateDraw:late};
+  if(kind==='none') finish('won');
+  else {save(KEY_TODAY,today);render();}
+}
+
+function finish(status){
+  today.status=status;
+  const score=today.type==='lives'?`${today.value}/${today.max} lives left`
+    :today.type==='goal'?`${today.value}/${today.max} done`:'n/a';
+  history.unshift({date:today.date,name:today.name,mode:today.hard?'HARDMODE':'Easy',score,outcome:status});
+  save(KEY_HIST,history);save(KEY_TODAY,today);render();
+}
+function loseLife(){if(!active())return;today.value--;save(KEY_TODAY,today);today.value<=0?finish('lost'):render()}
+function addCheck(){if(!active())return;today.value++;save(KEY_TODAY,today);today.value>=today.max?finish('won'):render()}
+function undo(){if(!active())return;
+  if(today.type==='lives'&&today.value<today.max)today.value++;
+  if(today.type==='goal'&&today.value>0)today.value--;
+  save(KEY_TODAY,today);render()}
+const active=()=>today&&today.status==='active';
+
+/* Expiry: 6 PM (or a new day) ends a running challenge */
+function checkExpiry(now){
+  if(!active())return;
+  if(today.date!==dateKey(now)||now.getHours()>=END_HOUR){
+    if(today.type==='lives') finish('won');
+    else finish(today.value>=today.max?'won':'lost');
+  }
+}
+
+/* ============ RENDER ============ */
+function render(){
+  const now=new Date(), isToday=today&&today.date===dateKey(now);
+  const hard=isToday?today.hard:now.getHours()>=HARD_HOUR&&now.getHours()<END_HOUR;
+  document.body.dataset.mode=hard?'hard':'easy';
+  $('badge').textContent=hard?'💀 HARDMODE':'🌈 Easy mode';
+  const s=$('stage');
+  if(!isToday){
+    const closed=now.getHours()>=END_HOUR;
+    s.innerHTML=`<div class="big">${closed?'Today’s window has closed':'Ready for today?'}</div>
+      <p class="desc">${closed?'Challenges run until 6:00 PM. Come back tomorrow!':
+        now.getHours()>=HARD_HOUR?'It’s past 10 AM. HARDMODE is in force!':
+        'Draw before 10:00 AM for Easy mode (with a 1-in-20 chance of HARDMODE anyway).'}</p>
+      <button id="drawBtn" class="primary" ${closed?'disabled':''}>🎲 Draw A Challenge</button>
+      <p class="hint" id="countdown"></p>`;
+    const b=$('drawBtn');if(b)b.onclick=drawChallenge;
+  } else {
+    let h=`<div class="hint">${today.hard?'HARDMODE':'Easy mode'}${today.lateDraw?' (drawn after 10 AM)':''}</div>
+      <div class="big">${esc(today.name)}</div>
+      <p class="desc ${today.secret&&!today.revealed?'secret':'show secret'}" id="descTxt" ${today.secret?'title="Click to reveal/hide your secret"':''}>${esc(today.desc)}</p>`;
+    if(today.secret) h+=`<div class="hint">Click the text to ${today.revealed?'hide':'reveal'} your secret</div>`;
+    if(today.type==='none') h+=`<div class="result win">✅ Automatic success!</div>`;
+    else if(today.type==='lives'){
+      h+=`<div class="count">${today.value} / ${today.max} lives</div><div class="row">`;
+      for(let i=0;i<today.max;i++) h+=`<span class="tok ${i<today.value?'':'gone'}">${i<today.value?'❤️':'💀'}</span>`;
+      h+=`</div>`;
+      if(active()) h+=`<button id="tap" class="tapper bad" aria-label="Lose a life">💀</button><div class="hint">Click the skull each time you lose a life</div>
+        <div class="row"><button id="win" class="good">🏆 Success!</button><button id="undo">↩ Undo</button></div>`;
+    } else {
+      h+=`<div class="count">${today.value} / ${today.max}</div><div class="row">`;
+      for(let i=0;i<today.max;i++) h+=`<span class="tok ${i<today.value?'':'gone'}">${i<today.value?'✅':'⬜'}</span>`;
+      h+=`</div>`;
+      if(active()) h+=`<button id="tap" class="tapper good" aria-label="Add a check">✅</button><div class="hint">Click the check each time you achieve it</div>
+        <div class="row"><button id="lose" class="bad">🏳️ Defeat</button><button id="undo">↩ Undo</button></div>`;
+    }
+    if(today.status==='won'&&today.type!=='none') h+=`<div class="result win">🍰 You won! Dessert is yours.</div>`;
+    if(today.status==='lost') h+=`<div class="result loss">😞 Defeat. No dessert today.</div>`;
+    if(active()) h+=`<p class="hint" id="countdown"></p>`;
+    s.innerHTML=h;
+    if($('tap'))$('tap').onclick=today.type==='lives'?loseLife:addCheck;
+    if($('undo'))$('undo').onclick=undo;
+    if($('win'))$('win').onclick=()=>finish('won');
+    if($('lose'))$('lose').onclick=()=>finish('lost');
+    if(today.secret)$('descTxt').onclick=()=>{today.revealed=!today.revealed;save(KEY_TODAY,today);render()};
+  }
+  updateCountdown(now);
+}
+function updateCountdown(now){
+  const el=$('countdown');if(!el)return;
+  const end=new Date(now);end.setHours(END_HOUR,0,0,0);
+  const hd=new Date(now);hd.setHours(HARD_HOUR,0,0,0);
+  const fmt=ms=>{const t=Math.max(0,Math.floor(ms/1000));return `${Math.floor(t/3600)}h ${pad(Math.floor(t%3600/60))}m ${pad(t%60)}s`};
+  const drawn=today&&today.date===dateKey(now);
+  if(!drawn&&now<hd) el.textContent=`HARDMODE starts in ${fmt(hd-now)}`;
+  else if(now<end) el.textContent=`Challenge ends at 6:00 PM, in ${fmt(end-now)}`;
+}
+function tick(){
+  const now=new Date();
+  $('clock').textContent=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  $('date').textContent=now.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const before=document.body.dataset.mode, wasActive=active();
+  checkExpiry(now);
+  const isToday=today&&today.date===dateKey(now);
+  const hardNow=isToday?today.hard:now.getHours()>=HARD_HOUR&&now.getHours()<END_HOUR;
+  const needRender=(hardNow?'hard':'easy')!==before||wasActive!==active()||(!isToday&&$('drawBtn')&&$('drawBtn').disabled!==(now.getHours()>=END_HOUR));
+  if(needRender)render();else updateCountdown(now);
+}
+
+/* ============ HISTORY ============ */
+function renderHistory(){
+  $('histBody').innerHTML=history.map(h=>`<tr><td>${esc(h.date)}</td><td>${esc(h.name)}</td><td>${esc(h.mode)}</td><td>${esc(h.score)}</td>
+    <td class="${h.outcome==='won'?'win':'loss'}">${h.outcome==='won'?'Win':'Loss'}</td></tr>`).join('');
+  $('histEmpty').hidden=history.length>0;
+}
+
+/* ============ EDITOR ============ */
+let editing=null;
+function renderList(){
+  $('chList').innerHTML=challenges.map(c=>`<div class="item"><div><strong>${esc(c.name)}</strong><br><small>weight ${c.weight} · ${c.type}${c.hasHard?' · has hardmode':''}${c.sub&&c.sub.length?' · '+c.sub.length+' sub-options':''}</small></div>
+    <button data-id="${esc(c.id)}">Edit</button></div>`).join('')||'<p class="hint">No challenges yet. Add one!</p>';
+  $('chList').querySelectorAll('button').forEach(b=>b.onclick=()=>openForm(challenges.find(c=>c.id===b.dataset.id)));
+}
+function openForm(c){
+  editing=c;$('form').hidden=false;
+  $('formTitle').textContent=c.name?'Edit: '+c.name:'New challenge';
+  $('fName').value=c.name;$('fDesc').value=c.description;$('fWeight').value=c.weight;$('fType').value=c.type;
+  $('fSub').value=(c.sub||[]).join('\n');$('fSecret').checked=!!c.secret;
+  const r=c.range||{};$('rEMin').value=r.eMin||'';$('rEMax').value=r.eMax||'';$('rHMin').value=r.hMin||'';$('rHMax').value=r.hMax||'';
+  $('fHasHard').checked=!!c.hasHard;$('hardBox').hidden=!c.hasHard;
+  const h=c.hard||{};$('hName').value=h.name||'';$('hDesc').value=h.description||'';$('hSub').value=(h.sub||[]).join('\n');
+  $('form').scrollIntoView({behavior:'smooth'});
+}
+const numOrNull=id=>{const v=parseInt($(id).value,10);return v>0?v:undefined};
+function saveForm(){
+  const c=editing;if(!c)return;
+  c.name=$('fName').value.trim()||'Untitled';c.description=$('fDesc').value.trim();
+  c.weight=Math.max(0,parseFloat($('fWeight').value)||0);c.type=$('fType').value;
+  c.sub=lines($('fSub').value);c.secret=$('fSecret').checked;
+  c.range={eMin:numOrNull('rEMin'),eMax:numOrNull('rEMax'),hMin:numOrNull('rHMin'),hMax:numOrNull('rHMax')};
+  c.hasHard=$('fHasHard').checked;
+  c.hard=c.hasHard?{name:$('hName').value.trim()||c.name,description:$('hDesc').value.trim()||c.description,sub:lines($('hSub').value)}:{};
+  if(!challenges.includes(c))challenges.push(c);
+  save(KEY_CH,challenges);$('form').hidden=true;editing=null;renderList();
+}
+
+/* ============ WIRING ============ */
+const openM=id=>$(id).classList.add('open');
+document.querySelectorAll('.closeBtn').forEach(b=>b.onclick=()=>b.closest('.modal').classList.remove('open'));
+$('btnHist').onclick=()=>{renderHistory();openM('histModal')};
+$('btnEdit').onclick=()=>{renderList();openM('editModal')};
+$('clearHist').onclick=()=>{if(confirm('Erase all history?')){history=[];save(KEY_HIST,history);renderHistory()}};
+$('addCh').onclick=()=>openForm({id:'c'+Date.now(),name:'',description:'',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:false,hard:{}});
+$('saveCh').onclick=saveForm;
+$('cancelCh').onclick=()=>{$('form').hidden=true;editing=null};
+$('delCh').onclick=()=>{if(editing&&confirm('Delete this challenge?')){challenges=challenges.filter(c=>c!==editing);save(KEY_CH,challenges);$('form').hidden=true;editing=null;renderList()}};
+$('fHasHard').onchange=e=>$('hardBox').hidden=!e.target.checked;
+$('resetBtn').onclick=()=>{if(confirm('Replace all challenges with the defaults?')){challenges=structuredClone(DEFAULTS);save(KEY_CH,challenges);$('form').hidden=true;renderList()}};
+$('expBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify({challenges,history},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daily-challenge-data.json';a.click();URL.revokeObjectURL(a.href);
+};
+$('impBtn').onclick=()=>$('impFile').click();
+$('impFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    const list=Array.isArray(d)?d:d.challenges;
+    if(!Array.isArray(list))throw new Error('No challenges found');
+    challenges=list.map((c,i)=>({id:c.id||'imp'+Date.now()+i,name:String(c.name||'Untitled'),description:String(c.description||''),weight:Number(c.weight)||0,
+      type:['lives','goal','none'].includes(c.type)?c.type:'lives',sub:Array.isArray(c.sub)?c.sub.map(String):[],secret:!!c.secret,range:c.range||{},hasHard:!!c.hasHard,hard:c.hard||{}}));
+    if(Array.isArray(d.history)){history=d.history;save(KEY_HIST,history)}
+    save(KEY_CH,challenges);renderList();alert('Import complete!');
+  }catch(err){alert('Could not import: '+err.message)}};
+  r.readAsText(f);e.target.value='';
+};
+
+render();tick();setInterval(tick,1000);
+</script>
+</body>
+</html>
