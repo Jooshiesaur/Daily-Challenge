@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Challenge</title>
-  <link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* ===== THEMES: 3 game states (easy / hard / win) x light or dark ===== */
@@ -62,6 +62,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .sheet{background:var(--bg2);color:var(--ink);border:3px solid var(--line);border-radius:20px;max-width:760px;margin:6vh auto;padding:18px;transform:translateY(60px);transition:transform .3s ease}
 .modal.open .sheet{transform:none}
 .sheet.small{max-width:440px}
+#confirmModal{z-index:10}
 .sheet header{margin:0 0 10px}
 body.dark .sheet{background:var(--bg1)}
 .item{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--muted)}
@@ -176,7 +177,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;text-align:left;
 </div></div>
 
 <script>
-const BUILD='v0.2';   // <-- edit the build number here
+const BUILD='v0.2.1';   // <-- edit the build number here
 const SOUNDS=[['DC_ButtonPress','Button press'],['DC_DrawChallenge','Draw a challenge'],['DC_Goal','Goal completed'],['DC_Success','Challenge success'],
  ['DC_LifeEasy','Life lost (Easy)'],['DC_LifeHard','Life lost (HARDMODE)'],['DC_FailEasy','Fail (Easy)'],['DC_FailHard','Fail (HARDMODE)']];
 const KEY_CH='dc_challenges',KEY_HIST='dc_history',KEY_TODAY='dc_today',KEY_SET='dc_settings';
@@ -185,7 +186,7 @@ const DEFAULT_RANGES={lives:{e:[3,12],h:[5,20]},goal:{e:[3,9],h:[5,16]}};
 const DEFAULTS=[
  {id:'none',name:'None!',description:'No challenge today. Enjoy your dessert!',info:'No challenge for the day, automatically successful.',weight:1,type:'none',sub:[],secret:false,range:{},hasHard:false,hard:{}},
  {id:'cat',name:'Catastrophe',description:"Can't touch cats today.",info:'You cannot touch any cats today. If any part of your body makes contact with a feline creature, you lose a life. Once you have touched a cat, continuing to pet it, as long as one body part remains in contact the whole time, only counts as one life.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
-  hard:{name:'Cataclysm',description:"Can't touch cats AT ALL today.",info:'On HARDMODE, every single touch counts as a lost life.',sub:[]}},
+  hard:{name:'Cataclysm',description:"Can't touch OR look at cats (photos and videos count!).",info:'On HARDMODE, every single touch counts as a lost life.',sub:[]}},
  {id:'color',name:'Anaphicolour',description:"Can't touch anything {sub} today.",info:'You cannot touch a specific colour today. If your body makes contact with an object that reflects wavelengths in the range of the colour rolled, you lose a life. Continuing to make contact with something only counts as one life.',weight:3,type:'lives',secret:false,range:{},
   sub:['Red','Blue','Green','Yellow','Purple','Orange'],hasHard:true,
   hard:{name:'Double Anaphicolour',description:"Can't touch anything in these colours today: {sub}.",info:'On HARDMODE, there might be multiple colours to look out for.',sub:['Red + Blue','Green + Yellow','Purple + Orange','Red + Green','Blue + Orange','Yellow + Purple']}},
@@ -251,15 +252,16 @@ function drawChallenge(forced){
   const c=forced||weightedPick(challenges);
   if(!c){askConfirm('No challenges have a weight above 0. Open the editor to fix that.',()=>{});return}
   const late=m>=S.hardMin;
-  const hard=(S.dev&&devHard!==null)?devHard:(late||Math.random()<0.05);
-  const v=hard&&c.hasHard?{...c,...c.hard}:c;
+  const wantHard=(S.dev&&devHard!==null)?devHard:(late||Math.random()<0.05);
+  const hard=wantHard&&!!c.hasHard;   // no hardmode variant = stays in Easy mode
+  const v=hard?{...c,...c.hard}:c;
   const subs=v.sub||[],sub=subs.length?pick(subs):'';
   const mode=hard?'h':'e',rg=c.range||{};
   const d=DEFAULT_RANGES[c.type]?DEFAULT_RANGES[c.type][mode]:[0,0];
   const max=c.type==='none'?0:rng(rg[mode+'Min']||d[0],rg[mode+'Max']||d[1]);
   const info=[c.info,hard&&c.hasHard?c.hard.info:''].filter(Boolean).join(' ');
   today={date:dateKey(now),name:v.name,desc:(v.description||'').replace(/\{sub\}/g,sub),info:info.replace(/\{sub\}/g,sub),
-    secret:!!c.secret&&!!sub,revealed:false,hard,type:c.type,max,value:c.type==='lives'?max:0,status:'active',lateDraw:late};
+    secret:!!c.secret&&!!sub,revealed:false,hard,type:c.type,max,value:c.type==='lives'?max:0,status:'active',lateDraw:late&&hard};
   play('DC_DrawChallenge');
   if(c.type==='none')finish('won');else{save(KEY_TODAY,today);render()}
 }
