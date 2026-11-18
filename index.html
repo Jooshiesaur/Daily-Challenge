@@ -230,7 +230,7 @@ const BUILD='v0.3';
    saved data) to see new defaults.
    ===================================================================== */
 const DEFAULT_VOL={
-  DC_ButtonPress:70, DC_ToggleSwitch:40, DC_DrawChallenge:70, DC_Goal:80, DC_Success:55,
+  DC_ButtonPress:70, DC_ToggleSwitch:60, DC_DrawChallenge:70, DC_Goal:80, DC_Success:55,
   DC_LifeEasy:70, DC_LifeHard:35, DC_FailEasy:50, DC_FailHard:50, DC_BgmEasy:60, DC_BgmHard:60
 };
 const SOUNDS=[['DC_ButtonPress','Button press'],['DC_ToggleSwitch','Toggle switch'],['DC_DrawChallenge','Draw a challenge'],['DC_Goal','Goal completed'],['DC_Success','Challenge success'],
@@ -406,7 +406,8 @@ function undo(){if(!active())return;
   if(today.type==='lives'&&today.value<today.max)today.value++;
   if(today.type==='goal'&&today.value>0)today.value--;
   save(KEY_TODAY,today);render()}
-const concludeNow=()=>today.type==='lives'?finish('won'):finish(today.value>=today.max?'won':'lost');
+/* End-of-day outcome: Lives = win with 1+ lives left, fail at 0. Goal = win only if every goal is done. */
+const concludeNow=()=>finish((today.type==='lives'?today.value>=1:today.value>=today.max)?'won':'lost');
 
 /* No draw within 2h of the HARDMODE time: the day is an automatic fail */
 function checkMissed(now){
