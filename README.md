@@ -3,7 +3,7 @@ A custom website for Daily Challenges.
 
 A gamified web app that assigns you a unique daily challenge to keep your day interesting! Complete tasks, manage your lives or goals, and win the day before the time window closes.
 
-[🔗 **Play the Game Here**](https://jooshiesaur.github.io/Daily-Challenge/)
+[**Play the Game Here**](https://jooshiesaur.github.io/Daily-Challenge/)
 
 ---
 
@@ -14,6 +14,7 @@ A gamified web app that assigns you a unique daily challenge to keep your day in
 - **Interactive Tracking:** Click skulls to deduct lives or checkmarks to track completed goals.
 - **Sub-Randomization:** Supports unique sub-tasks and randomized variables (like assigned colors or secret missions).
 - **History Log:** Keeps track of past challenges, dates, and win/loss records.
+- **Custom Sound Design:** Sound effects for buttons, and even some background music composed by Jooshiesaur. Change the volumes of these sounds in settings.
 
 ---
 
@@ -23,7 +24,7 @@ A gamified web app that assigns you a unique daily challenge to keep your day in
 2. **Follow the Rules:** 
    - **Lives Mode:** Click the **skull** icon every time you fail or break a rule. Clear the day with at least 1 life remaining to win!
    - **Goal Mode:** Click the **checkmark** as you complete reps toward your daily target number.
-3. **Beat the Clock:** Complete your task before **6:00 PM** local time (by default) to secure victory (and earn dessert!).
+3. **Beat the Clock:** Complete your task before **6:00 PM** local time (by default) to secure victory (and earn dessert!). If you don't log on at 6, a neat pop-up will let you adjust your finals score before the challenge concludes.
 
 ---
 
