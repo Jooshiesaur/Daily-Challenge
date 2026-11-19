@@ -245,7 +245,7 @@ const DEFAULTS=[
  {id:'none',name:'None!',description:'No challenge today. Enjoy your dessert!',info:'No challenge for the day, automatically successful.',weight:1,type:'none',sub:[],secret:false,range:{},hasHard:false,hard:{}},
  {id:'cat',name:'Catastrophe',description:"Can't touch cats today.",info:'You cannot touch any cats today. If any part of your body makes contact with a feline creature, you lose a life. Once you have touched a cat, continuing to pet it, as long as one body part remains in contact the whole time, only counts as one life.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
   hard:{name:'Cataclysm',description:"Can't touch OR look at cats (photos and videos count!).",info:'On HARDMODE, every single touch counts as a lost life.',sub:[]}},
- {id:'color',name:'Anaphicolour',description:"Can't touch anything {sub} today.",info:'You cannot touch a specific colour today. If your body makes contact with an object that reflects wavelengths in the range of the colour rolled, you lose a life. Continuing to make contact with something only counts as one life.',weight:3,type:'lives',secret:false,range:{},
+ {id:'color',name:'Anaphicolour',description:"Can't touch anything {sub} today.",info:'You cannot touch a specific colour today. If your body makes contact with an object (Including screens!) that reflects wavelengths in the range of the colour rolled, you lose a life. Continuing to make contact with something only counts as one life.',weight:3,type:'lives',secret:false,range:{},
   sub:['Red','Blue','Green','Yellow','Purple','Orange'],hasHard:true,
   hard:{name:'Double Anaphicolour',description:"Can't touch anything in these colours today: {sub}.",info:'On HARDMODE, there might be multiple colours to look out for.',sub:['Red + Blue','Green + Yellow','Purple + Orange','Red + Green','Blue + Orange','Yellow + Purple']}},
  {id:'chuckle',name:'Chuckle Muck',description:"Can't laugh, chuckle or giggle.",info:'No laughing, chuckling, or giggling. If you make a noise from being humored, you lose a life.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
@@ -253,8 +253,8 @@ const DEFAULTS=[
  {id:'cold',name:'Cold Shoulder',description:'Use your non-dominant hand for tasks you normally do with your dominant hand.',info:'Today, you must use your non-dominant hand for tasks you commonly use your dominant hand for (anything you use your dominant hand for at least 70% of the time). You achieve a goal for every unique TASK you do, not every time you do it. Example: If you use your computer mouse from the left instead of the right, you only get one goal achieved. However, you must continue doing these tasks with your non-dominant hand until the challenge is complete.',weight:3,type:'goal',sub:[],secret:false,range:{},hasHard:false,hard:{}},
  {id:'reflect',name:'Reflective Reaper',description:'Do not make eye contact with your own reflection.',info:'You cannot look at your own reflection today. You lose a life if you make eye contact with yourself.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
   hard:{name:'Reflective Reaper',description:'Do not look at ANY part of yourself in a reflection.',info:'On HARDMODE, you lose a life if you even look at any part of yourself in the reflection.',sub:[]}},
- {id:'secret',name:'Secret Life',description:'Your secret task: {sub}.',info:'Today, you have a secret task viewable on the main screen. You must complete this task the target number of times while keeping it secret. If someone else guesses your task, you fail. Feel free to add your own tasks to the list in the editor!',weight:3,type:'goal',secret:true,range:{},
-  sub:['Hummingbird - Hum a song in every room you enter','Facinatory - Say "fascinating" at least once in {goal} conversations','The Posing Doorman - Strike a random pose whenever a door opens. This includes when you open a door, as well as other people in your vicinity.','Sneaky Snitch - Sneak around other people like a cartoon criminal.','The Confusing Cleaner - Gently wipe every clean object you see, while ignoring dirty ones.',
+ {id:'secret',name:'Secret Life',description:'Your secret task: {sub}',info:'Today, you have a secret task viewable on the main screen. You must complete this task the target number of times while keeping it secret. If someone else guesses your task, you fail. Feel free to add your own tasks to the list in the editor!',weight:3,type:'goal',secret:true,range:{},
+  sub:['Hummingbird - Hum a song in every room you enter.','Facinatory - Say "fascinating" at least once in {goal} conversations.','The Posing Doorman - Strike a random pose whenever a door opens. This includes when you open a door, as well as other people in your vicinity.','Sneaky Snitch - Sneak around other people like a cartoon criminal.','The Confusing Cleaner - Gently wipe every clean object you see, while ignoring dirty ones.',
    'Reverse Weeping Angel - Whenever another person is in your line of sight, you are only allowed to move while they are actively looking at you. If they look away, freeze until they look back or leave your sight.',
    'Double Agent - Pretend you are doing a different, made-up secret task. You complete a goal every time someone guesses your fake task, but you immediately fail if someone figures out you\'re faking it.',
    'Casual Poet - Sneak rhymes into completely normal sentences during conversation without acknowledging them or changing your tone.'],hasHard:false,hard:{}},
@@ -311,7 +311,7 @@ const endTs=d=>{const e=new Date(d);e.setHours(Math.floor(S.endMin/60),S.endMin%
 
 /* ===== sound effects ===== */
 const vol=n=>(S.vol[n]??DEFAULT_VOL[n]??70)/100;
-function play(n){try{const a=new Audio('Sounds/'+n+'.wav');a.volume=Math.min(1,vol(n));a.play().catch(()=>{})}catch(e){}}
+function play(n){try{const a=new Audio('Sounds/'+n+'.mp3');a.volume=Math.min(1,vol(n));a.play().catch(()=>{})}catch(e){}}
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled&&!b.hasAttribute('data-nosound'))play('DC_ButtonPress')});
 document.addEventListener('change',e=>{if(e.target.closest('.sw'))play('DC_ToggleSwitch')});
 
@@ -323,12 +323,12 @@ async function startTrack(t){
   t.started=true;const k=++t.tok;
   try{   // gapless loop via Web Audio (needs the page served over http/https)
     ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();ctx.resume();
-    const r=await fetch('Sounds/'+t.name+'.wav');if(!r.ok)throw 0;
+    const r=await fetch('Sounds/'+t.name+'.mp3');if(!r.ok)throw 0;
     const buf=await ctx.decodeAudioData(await r.arrayBuffer());if(k!==t.tok)return;
     t.gain=ctx.createGain();t.gain.connect(ctx.destination);applyLevel(t);
     t.src=ctx.createBufferSource();t.src.buffer=buf;t.src.loop=true;t.src.connect(t.gain);t.src.start();
   }catch(e){   // fallback (e.g. opened straight from a file): normal looping audio tag
-    if(k!==t.tok)return;t.el=new Audio('Sounds/'+t.name+'.wav');t.el.loop=true;applyLevel(t);t.el.play().catch(()=>{});
+    if(k!==t.tok)return;t.el=new Audio('Sounds/'+t.name+'.mp3');t.el.loop=true;applyLevel(t);t.el.play().catch(()=>{});
   }
 }
 function stopTrack(t){t.started=false;t.tok++;try{t.src&&t.src.stop()}catch(e){}try{t.el&&t.el.pause()}catch(e){}t.src=t.gain=t.el=null}
