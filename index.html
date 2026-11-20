@@ -221,7 +221,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;text-align:left;
 /* =====================================================================
    BUILD NUMBER: change the text between the quotes to update the version
    ===================================================================== */
-const BUILD='v0.3';
+const BUILD='v0.3.1';
 
 /* =====================================================================
    DEFAULT VOLUMES (percent, 0-100). Edit these numbers to change the
@@ -230,7 +230,7 @@ const BUILD='v0.3';
    saved data) to see new defaults.
    ===================================================================== */
 const DEFAULT_VOL={
-  DC_ButtonPress:70, DC_ToggleSwitch:60, DC_DrawChallenge:70, DC_Goal:80, DC_Success:55,
+  DC_ButtonPress:70, DC_ToggleSwitch:40, DC_DrawChallenge:70, DC_Goal:80, DC_Success:55,
   DC_LifeEasy:70, DC_LifeHard:35, DC_FailEasy:50, DC_FailHard:50, DC_BgmEasy:60, DC_BgmHard:60
 };
 const SOUNDS=[['DC_ButtonPress','Button press'],['DC_ToggleSwitch','Toggle switch'],['DC_DrawChallenge','Draw a challenge'],['DC_Goal','Goal completed'],['DC_Success','Challenge success'],
@@ -245,7 +245,7 @@ const DEFAULTS=[
  {id:'none',name:'None!',description:'No challenge today. Enjoy your dessert!',info:'No challenge for the day, automatically successful.',weight:1,type:'none',sub:[],secret:false,range:{},hasHard:false,hard:{}},
  {id:'cat',name:'Catastrophe',description:"Can't touch cats today.",info:'You cannot touch any cats today. If any part of your body makes contact with a feline creature, you lose a life. Once you have touched a cat, continuing to pet it, as long as one body part remains in contact the whole time, only counts as one life.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
   hard:{name:'Cataclysm',description:"Can't touch OR look at cats (photos and videos count!).",info:'On HARDMODE, every single touch counts as a lost life.',sub:[]}},
- {id:'color',name:'Anaphicolour',description:"Can't touch anything {sub} today.",info:'You cannot touch a specific colour today. If your body makes contact with an object (Including screens!) that reflects wavelengths in the range of the colour rolled, you lose a life. Continuing to make contact with something only counts as one life.',weight:3,type:'lives',secret:false,range:{},
+ {id:'color',name:'Anaphicolour',description:"Can't touch anything {sub} today.",info:'You cannot touch a specific colour today. If your body makes contact with an object (Including screens!) that reflects wavelengths in the range of the colour rolled, you lose a life. Continuing to make contact with something only counts as one life. Your clothing does not count, unless you want it to.',weight:3,type:'lives',secret:false,range:{},
   sub:['Red','Blue','Green','Yellow','Purple','Orange'],hasHard:true,
   hard:{name:'Double Anaphicolour',description:"Can't touch anything in these colours today: {sub}.",info:'On HARDMODE, there might be multiple colours to look out for.',sub:['Red + Blue','Green + Yellow','Purple + Orange','Red + Green','Blue + Orange','Yellow + Purple']}},
  {id:'chuckle',name:'Chuckle Muck',description:"Can't laugh, chuckle or giggle.",info:'No laughing, chuckling, or giggling. If you make a noise from being humored, you lose a life.',weight:3,type:'lives',sub:[],secret:false,range:{},hasHard:true,
